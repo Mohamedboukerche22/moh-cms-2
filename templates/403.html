@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Access Forbidden - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-page py-5">
+                <div class="error-code mb-4">
+                    <h1 class="display-1 text-warning">403</h1>
+                </div>
+                
+                <div class="error-message mb-4">
+                    <h3 class="mb-3">Access Forbidden</h3>
+                    <p class="text-muted">
+                        You don't have permission to access this resource. 
+                        This could be because you need to log in or you don't have sufficient privileges.
+                    </p>
+                </div>
+                
+                <div class="error-actions">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                    
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-info">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Access Denied:</strong> Insufficient privileges<br>
+                        <small class="text-muted">
+                            {% if current_user.is_authenticated %}
+                                Logged in as: <strong>{{ current_user.username }}</strong> ({{ current_user.role.title() }})
+                            {% else %}
+                                You are not logged in. Please log in to access this resource.
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if not current_user.is_authenticated %}
+    setTimeout(function() {
+        if (confirm('You need to log in to access this page. Redirect to login now?')) {
+            window.location.href = '{{ url_for("login") }}';
+        }
+    }, 5000);
+    {% endif %}
+});
+</script>
+{% endblock %}
