@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-users me-2"></i>User Management
+    </h2>
+    
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshUsers()">
+            <i class="fas fa-sync-alt me-1"></i>Refresh
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-filter me-1"></i>Filter
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('all')">All Users</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('admin')">Administrators</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('judge')">Judges</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('contestant')">Contestants</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('visitor')">Visitors</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('active')">Active Only</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterUsers('inactive')">Inactive Only</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% if users %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="usersTable">
+                <thead>
+                    <tr>
+                        <th width="15%">Username</th>
+                        <th width="25%">Full Name</th>
+                        <th width="20%">Email</th>
+                        <th width="10%">Role</th>
+                        <th width="8%">Status</th>
+                        <th width="12%">Last Login</th>
+                        <th width="10%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr data-role="{{ user.role }}" data-status="{{ 'active' if user.is_active else 'inactive' }}">
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.id == current_user.id %}
+                            <span class="badge bg-info ms-1">You</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                            <span class="badge bg-danger">Administrator</span>
+                            {% elif user.role == 'judge' %}
+                            <span class="badge bg-warning">Judge</span>
+                            {% elif user.role == 'contestant' %}
+                            <span class="badge bg-primary">Contestant</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Visitor</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="text-success">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
+                            {% else %}
+                            <span class="text-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactive
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if user.last_login %}
+                                {{ user.last_login|naturaltime }}
+                                {% else %}
+                                Never
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('edit_user', user_id=user.id) }}" 
+                                   class="btn btn-outline-primary" 
+                                   title="Edit User">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-outline-info" 
+                                        onclick="viewUserStats({{ user.id }})" 
+                                        title="View Statistics">
+                                    <i class="fas fa-chart-bar"></i>
+                                </button>
+                                {% if user.id != current_user.id %}
+                                <button class="btn btn-outline-warning" 
+                                        onclick="toggleUserStatus({{ user.id }}, {{ user.is_active|lower }})" 
+                                        title="Toggle Status">
+                                    {% if user.is_active %}
+                                    <i class="fas fa-user-slash"></i>
+                                    {% else %}
+                                    <i class="fas fa-user-check"></i>
+                                    {% endif %}
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ users|length }}</h5>
+                <p class="card-text">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">{{ users|selectattr('is_active')|list|length }}</h5>
+                <p class="card-text">Active Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">{{ users|selectattr('role', 'equalto', 'contestant')|list|length }}</h5>
+                <p class="card-text">Contestants</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">{{ users|selectattr('role', 'in', ['admin', 'judge'])|list|length }}</h5>
+                <p class="card-text">Staff</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No users found</h4>
+        <p class="text-muted">This should not happen as there should be at least one admin user.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- User Statistics Modal -->
+<div class="modal fade" id="userStatsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Statistics</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userStatsContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshUsers() {
+    window.location.reload();
+}
+
+function filterUsers(filterType) {
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        switch (filterType) {
+            case 'all':
+                show = true;
+                break;
+            case 'admin':
+            case 'judge':
+            case 'contestant':
+            case 'visitor':
+                show = row.dataset.role === filterType;
+                break;
+            case 'active':
+                show = row.dataset.status === 'active';
+                break;
+            case 'inactive':
+                show = row.dataset.status === 'inactive';
+                break;
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+    
+    // Update visible count
+    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+    console.log(`Showing ${visibleRows.length} of ${rows.length} users`);
+}
+
+function viewUserStats(userId) {
+    const modal = new bootstrap.Modal(document.getElementById('userStatsModal'));
+    
+    // In a real implementation, this would load user statistics via AJAX
+    document.getElementById('userStatsContent').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            User statistics view will be implemented in the next version.
+        </div>
+        <p>User ID: ${userId}</p>
+    `;
+    
+    modal.show();
+}
+
+function toggleUserStatus(userId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const message = `Are you sure you want to ${action} this user?`;
+    
+    if (confirm(message)) {
+        // In a real implementation, this would send a request to toggle user status
+        alert(`User status toggle will be implemented in the next version.`);
+    }
+}
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add search box
+    const cardBody = document.querySelector('.card .card-body');
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'mb-3';
+    searchContainer.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
+            </div>
+        </div>
+    `;
+    cardBody.insertBefore(searchContainer, cardBody.firstChild);
+    
+    // Search functionality
+    document.getElementById('userSearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
+

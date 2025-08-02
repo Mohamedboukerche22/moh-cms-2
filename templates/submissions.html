@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if admin_view %}All Submissions{% else %}My Submissions{% endif %} - IOI CMS
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-paper-plane me-2"></i>
+        {% if admin_view %}All Submissions{% else %}My Submissions{% endif %}
+    </h2>
+    
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshSubmissions()">
+            <i class="fas fa-sync-alt me-1"></i>Refresh
+        </button>
+        {% if not admin_view %}
+        <a href="{{ url_for('problems') }}" class="btn btn-success">
+            <i class="fas fa-code me-1"></i>Submit New
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if submissions.items %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="8%">ID</th>
+                        {% if admin_view %}
+                        <th width="15%">User</th>
+                        {% endif %}
+                        <th width="25%">Problem</th>
+                        <th width="10%">Language</th>
+                        <th width="12%">Status</th>
+                        <th width="8%">Score</th>
+                        <th width="10%">Time</th>
+                        <th width="12%">Submitted</th>
+                        <th width="10%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions.items %}
+                    <tr id="submission-{{ submission.id }}">
+                        <td>
+                            <strong class="text-muted">#{{ submission.id }}</strong>
+                        </td>
+                        {% if admin_view %}
+                        <td>
+                            <a href="#" class="text-decoration-none">
+                                {{ submission.user.username }}
+                            </a>
+                        </td>
+                        {% endif %}
+                        <td>
+                            <a href="{{ url_for('problem_detail', problem_id=submission.problem.id) }}" class="text-decoration-none">
+                                <strong class="text-primary">{{ submission.problem.code }}</strong>
+                                - {{ submission.problem.title|truncate(30) }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ submission.language }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ submission.get_status_class() }}" id="status-{{ submission.id }}">
+                                {{ submission.status.replace('_', ' ').title() }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong id="score-{{ submission.id }}">{{ submission.score or 0 }}</strong>
+                            <small class="text-muted">/ {{ submission.problem.points }}</small>
+                        </td>
+                        <td>
+                            <span id="time-{{ submission.id }}">
+                                {% if submission.execution_time %}
+                                    {{ submission.execution_time }}ms
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ submission.submitted_at|naturaltime }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" 
+                                        onclick="viewSubmission({{ submission.id }})" 
+                                        title="View Code">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if submission.status in ['pending', 'judging'] %}
+                                <button class="btn btn-outline-info" 
+                                        onclick="checkStatus({{ submission.id }})" 
+                                        title="Check Status">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if submissions.pages > 1 %}
+<nav aria-label="Submissions pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if submissions.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for(request.endpoint, page=submissions.prev_num) }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in submissions.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != submissions.page %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for(request.endpoint, page=page_num) }}">{{ page_num }}</a>
+                </li>
+                {% else %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% endif %}
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">…</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if submissions.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for(request.endpoint, page=submissions.next_num) }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Submission Statistics -->
+{% if not admin_view %}
+<div class="row mt-4">
+    {% set total_count = submissions.total %}
+    {% set accepted_count = submissions.items|selectattr('status', 'equalto', 'accepted')|list|length %}
+    {% set pending_count = submissions.items|selectattr('status', 'in', ['pending', 'judging'])|list|length %}
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ total_count }}</h5>
+                <p class="card-text">Total Submissions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">{{ accepted_count }}</h5>
+                <p class="card-text">Accepted</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">{{ pending_count }}</h5>
+                <p class="card-text">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">
+                    {% if total_count > 0 %}
+                        {{ "%.1f"|format((accepted_count / total_count * 100)) }}%
+                    {% else %}
+                        0.0%
+                    {% endif %}
+                </h5>
+                <p class="card-text">Success Rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No submissions yet</h4>
+        {% if admin_view %}
+        <p class="text-muted">Submissions will appear here as users submit solutions.</p>
+        {% else %}
+        <p class="text-muted">Start solving problems to see your submissions here.</p>
+        <a href="{{ url_for('problems') }}" class="btn btn-primary">
+            <i class="fas fa-puzzle-piece me-2"></i>Browse Problems
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Submission Details Modal -->
+<div class="modal fade" id="submissionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="submissionDetails">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshSubmissions() {
+    window.location.reload();
+}
+
+function checkStatus(submissionId) {
+    // In a real implementation, this would make an AJAX call
+    // For now, we'll just refresh the page
+    refreshSubmissions();
+}
+
+function viewSubmission(submissionId) {
+    // Show modal with submission details
+    const modal = new bootstrap.Modal(document.getElementById('submissionModal'));
+    
+    // In a real implementation, this would load submission details via AJAX
+    document.getElementById('submissionDetails').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Submission code viewing will be implemented in the next version.
+        </div>
+    `;
+    
+    modal.show();
+}
+
+// Auto-refresh pending submissions
+document.addEventListener('DOMContentLoaded', function() {
+    const pendingSubmissions = document.querySelectorAll('.badge.bg-warning, .badge.bg-info');
+    
+    if (pendingSubmissions.length > 0) {
+        // Check for updates every 5 seconds if there are pending submissions
+        setInterval(function() {
+            // In a real implementation, this would check status via AJAX
+            // For now, we'll refresh the page every 30 seconds
+        }, 30000);
+    }
+});
+</script>
+{% endblock %}

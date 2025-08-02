@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Add Test Case - {{ problem.code }} - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>Add Test Case
+                    <span class="badge bg-primary ms-2">{{ problem.code }}</span>
+                </h4>
+                <small class="text-muted">{{ problem.title }}</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <div class="form-check">
+                                {{ form.is_sample(class="form-check-input") }}
+                                {{ form.is_sample.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">Sample test cases are visible to contestants</small>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.points.label(class="form-label") }}
+                            {{ form.points(class="form-control") }}
+                            {% if form.points.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.points.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.input_data.label(class="form-label") }}
+                            {{ form.input_data(class="form-control font-monospace", rows="10", placeholder="Enter the input data for this test case...") }}
+                            {% if form.input_data.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.input_data.errors %}
+                                <div>{{ error }}</div> 
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="text-muted">Input as it would be provided to the program</small>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.output_data.label(class="form-label") }}
+                            {{ form.output_data(class="form-control font-monospace", rows="10", placeholder="Enter the expected output for this test case...") }}
+                            {% if form.output_data.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.output_data.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="text-muted">Expected output (exact match required)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('manage_test_cases', problem_id=problem.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Problem Reference -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Problem Reference
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ problem.title }}</h6>
+                
+                {% if problem.sample_input and problem.sample_output %}
+                <h6 class="mt-3">Sample Case:</h6>
+                <div class="mb-2">
+                    <strong class="small">Input:</strong>
+                    <pre class="bg-light p-2 mt-1 small">{{ problem.sample_input }}</pre>
+                </div>
+                <div>
+                    <strong class="small">Output:</strong>
+                    <pre class="bg-light p-2 mt-1 small">{{ problem.sample_output }}</pre>
+                </div>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>View Full Problem
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Case Tips -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Test Case Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li><strong>Input Formatting:</strong> Match exactly how input will be provided</li>
+                    <li><strong>Output Matching:</strong> Include exact spacing and line breaks</li>
+                    <li><strong>Edge Cases:</strong> Test minimum/maximum values</li>
+                    <li><strong>Sample Cases:</strong> Mark visible test cases as samples</li>
+                    <li><strong>Points:</strong> Distribute points based on difficulty</li>
+                </ul>
+                
+                <div class="alert alert-warning mt-3 small" role="alert">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Important:</strong> Output must match exactly, including whitespace and newlines.
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Constraints -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-ruler me-2"></i>Problem Constraints
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-6">Time Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.time_limit }}ms</dd>
+                    
+                    <dt class="col-sm-6">Memory Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.memory_limit }}MB</dd>
+                    
+                    <dt class="col-sm-6">Max Points:</dt>
+                    <dd class="col-sm-6">{{ problem.points }}</dd>
+                </dl>
+                
+                {% if problem.constraints %}
+                <hr>
+                <h6 class="small">Problem Constraints:</h6>
+                <pre class="small bg-light p-2">{{ problem.constraints }}</pre>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-adjust textarea height
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+    
+    // Validate form before submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const inputData = document.querySelector('#input_data').value.trim();
+        const outputData = document.querySelector('#output_data').value.trim();
+        
+        if (!inputData || !outputData) {
+            e.preventDefault();
+            alert('Both input and output data are required.');
+            return false;
+        }
+        
+        // Check for trailing whitespace in output
+        if (outputData !== outputData.trimEnd()) {
+            if (!confirm('Output data has trailing whitespace. This might cause matching issues. Continue anyway?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

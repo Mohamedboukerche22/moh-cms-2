@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Scoreboard - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-trophy me-2"></i>Scoreboard
+    </h2>
+    
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="refreshScoreboard()">
+            <i class="fas fa-sync-alt me-1"></i>Refresh
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-filter me-1"></i>Filter
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="filterByRole('all')">All Users</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterByRole('contestant')">Contestants Only</a></li>
+                <li><a class="dropdown-item" href="#" onclick="filterByRole('admin')">Admins Only</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% if scoreboard %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="scoreboardTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="8%">Rank</th>
+                        <th width="20%">Username</th>
+                        <th width="25%">Full Name</th>
+                        <th width="12%">Solved</th>
+                        <th width="15%">Total Score</th>
+                        <th width="15%">Submissions</th>
+                        <th width="5%">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in scoreboard %}
+                    <tr class="scoreboard-row" data-user-id="{{ entry.id }}">
+                        <td>
+                            <strong class="rank-number">{{ loop.index }}</strong>
+                            {% if loop.index == 1 %}
+                            <i class="fas fa-crown text-warning ms-1"></i>
+                            {% elif loop.index == 2 %}
+                            <i class="fas fa-medal text-secondary ms-1"></i>
+                            {% elif loop.index == 3 %}
+                            <i class="fas fa-medal text-warning ms-1" style="color: #CD7F32 !important;"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ entry.username }}</strong>
+                            {% if current_user.is_authenticated and entry.id == current_user.id %}
+                            <span class="badge bg-primary ms-1">You</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ entry.full_name }}</td>
+                        <td>
+                            <span class="badge bg-success fs-6">
+                                {{ entry.solved_problems or 0 }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="text-primary">
+                                {{ entry.total_score or 0 }}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="text-muted">
+                                {{ entry.total_submissions or 0 }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if entry.solved_problems and entry.solved_problems > 0 %}
+                            <i class="fas fa-check-circle text-success" title="Active"></i>
+                            {% else %}
+                            <i class="fas fa-minus-circle text-muted" title="No submissions"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Scoreboard Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ scoreboard|length }}</h5>
+                <p class="card-text">Total Participants</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    {{ scoreboard|selectattr('solved_problems')|selectattr('solved_problems', 'greaterthan', 0)|list|length }}
+                </h5>
+                <p class="card-text">Active Solvers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">
+                    {% set max_score = scoreboard|map(attribute='total_score')|list|max if scoreboard else 0 %}
+                    {{ max_score or 0 }}
+                </h5>
+                <p class="card-text">Highest Score</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">
+                    {% set total_submissions = scoreboard|map(attribute='total_submissions')|list|sum if scoreboard else 0 %}
+                    {{ total_submissions or 0 }}
+                </h5>
+                <p class="card-text">Total Submissions</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No submissions yet</h4>
+        <p class="text-muted">The scoreboard will populate as users submit solutions to problems.</p>
+        
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('problems') }}" class="btn btn-primary">
+            <i class="fas fa-puzzle-piece me-2"></i>Start Solving Problems
+        </a>
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Join the Contest
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Auto-refresh notice -->
+<div class="alert alert-info mt-3" role="alert">
+    <i class="fas fa-info-circle me-2"></i>
+    Scoreboard updates automatically every 30 seconds. Last updated: <span id="lastUpdated">{{ moment().format('HH:mm:ss') if moment else 'Now' }}</span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let autoRefreshInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Start auto-refresh
+    startAutoRefresh();
+    
+    // Update last updated time
+    updateLastUpdatedTime();
+});
+
+function startAutoRefresh() {
+    // Refresh scoreboard every 30 seconds
+    autoRefreshInterval = setInterval(function() {
+        refreshScoreboard();
+    }, 30000);
+}
+
+function refreshScoreboard() {
+    // Simple page reload for now - in a production system, this would be an AJAX call
+    window.location.reload();
+}
+
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    document.getElementById('lastUpdated').textContent = timeString;
+}
+
+function filterByRole(role) {
+    const rows = document.querySelectorAll('.scoreboard-row');
+    
+    rows.forEach(row => {
+        if (role === 'all') {
+            row.style.display = '';
+        } else {
+            // This is a simplified filter - in a real implementation,
+            // you'd need to include role data in the row attributes
+            row.style.display = '';
+        }
+    });
+    
+    // Re-number visible rows
+    renumberVisibleRows();
+}
+
+function renumberVisibleRows() {
+    const visibleRows = document.querySelectorAll('.scoreboard-row:not([style*="display: none"])');
+    
+    visibleRows.forEach((row, index) => {
+        const rankCell = row.querySelector('.rank-number');
+        if (rankCell) {
+            rankCell.textContent = index + 1;
+            
+            // Update medals
+            const medalIcons = row.querySelectorAll('.fa-crown, .fa-medal');
+            medalIcons.forEach(icon => icon.remove());
+            
+            if (index === 0) {
+                rankCell.insertAdjacentHTML('afterend', '<i class="fas fa-crown text-warning ms-1"></i>');
+            } else if (index === 1) {
+                rankCell.insertAdjacentHTML('afterend', '<i class="fas fa-medal text-secondary ms-1"></i>');
+            } else if (index === 2) {
+                rankCell.insertAdjacentHTML('afterend', '<i class="fas fa-medal text-warning ms-1" style="color: #CD7F32 !important;"></i>');
+            }
+        }
+    });
+}
+
+// Cleanup interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+});
+</script>
+{% endblock %}

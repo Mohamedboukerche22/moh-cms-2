@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ current_user.username }} - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Profile Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-3">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-1">{{ current_user.full_name }}</h3>
+                        <p class="text-muted mb-1">@{{ current_user.username }}</p>
+                        <span class="badge bg-primary">{{ current_user.role.title() }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ accepted_submissions }}</h3>
+                        <p class="text-muted mb-0">Problems Solved</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ total_submissions }}</h3>
+                        <p class="text-muted mb-0">Total Submissions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">
+                            {% if total_submissions > 0 %}
+                            {{ "%.1f"|format((accepted_submissions / total_submissions * 100)) }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </h3>
+                        <p class="text-muted mb-0">Success Rate</p>
+                    </div>
+                </div>
+            {% extends "base.html" %}
+
+{% block title %}Profile - {{ current_user.username }} - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Profile Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-placeholder bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        {{ current_user.full_name[0].upper() }}
+                    </div>
+                    <div>
+                        <h3 class="mb-1">{{ current_user.full_name }}</h3>
+                        <p class="text-muted mb-1">@{{ current_user.username }}</p>
+                        <span class="badge bg-primary">{{ current_user.role.title() }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-primary">{{ total_submissions }}</div>
+                            <div class="stat-label">Total Submissions</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-success">{{ accepted_submissions }}</div>
+                            <div class="stat-label">Accepted</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-info">
+                                {% if total_submissions > 0 %}
+                                    {{ "%.1f"|format((accepted_submissions / total_submissions * 100)) }}%
+                                {% else %}
+                                    0.0%
+                                {% endif %}
+                            </div>
+                            <div class="stat-label">Success Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-warning">
+                                {{ (current_user.created_at.now() - current_user.created_at).days }}
+                            </div>
+                            <div class="stat-label">Days Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_submissions %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Language</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in recent_submissions %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('problem_detail', problem_id=submission.problem.id) }}">
+                                        {{ submission.problem.code }} - {{ submission.problem.title|truncate(30) }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ submission.language }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ submission.get_status_class() }}">
+                                        {{ submission.status.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>{{ submission.score or 0 }}</td>
+                                <td>{{ submission.submitted_at|naturaltime }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('submissions') }}" class="btn btn-outline-primary">
+                        View All Submissions
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-code fa-2x mb-2"></i>
+                    <p>No submissions yet.</p>
+                    <a href="{{ url_for('problems') }}" class="btn btn-primary">
+                        Start Solving Problems
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Account Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Account Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Username:</dt>
+                    <dd class="col-sm-7">{{ current_user.username }}</dd>
+                    
+                    <dt class="col-sm-5">Full Name:</dt>
+                    <dd class="col-sm-7">{{ current_user.full_name }}</dd>
+                    
+                    <dt class="col-sm-5">Email:</dt>
+                    <dd class="col-sm-7">{{ current_user.email }}</dd>
+                    
+                    <dt class="col-sm-5">Role:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-primary">{{ current_user.role.title() }}</span>
+                    </dd>
+                    
+                    <dt class="col-sm-5">Member Since:</dt>
+                    <dd class="col-sm-7">{{ current_user.created_at.strftime('%B %d, %Y') }}</dd>
+                    
+                    <dt class="col-sm-5">Last Login:</dt>
+                    <dd class="col-sm-7">
+                        {% if current_user.last_login %}
+                            {{ current_user.last_login|naturaltime }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-5">Status:</dt>
+                    <dd class="col-sm-7">
+                        {% if current_user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('problems') }}" class="btn btn-primary">
+                        <i class="fas fa-puzzle-piece me-2"></i>Browse Problems
+                    </a>
+                    <a href="{{ url_for('submissions') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>My Submissions
+                    </a>
+                    <a href="{{ url_for('scoreboard') }}" class="btn btn-outline-success">
+                        <i class="fas fa-trophy me-2"></i>Scoreboard
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-info">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-trophy me-2"></i>Achievements
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="achievement-list">
+                    {% if accepted_submissions >= 1 %}
+                    <div class="achievement-item d-flex align-items-center mb-2">
+                        <i class="fas fa-medal text-warning me-2"></i>
+                        <span>First Solve</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if accepted_submissions >= 5 %}
+                    <div class="achievement-item d-flex align-items-center mb-2">
+                        <i class="fas fa-fire text-danger me-2"></i>
+                        <span>Problem Solver</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if accepted_submissions >= 10 %}
+                    <div class="achievement-item d-flex align-items-center mb-2">
+                        <i class="fas fa-star text-primary me-2"></i>
+                        <span>Rising Star</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if total_submissions >= 50 %}
+                    <div class="achievement-item d-flex align-items-center mb-2">
+                        <i class="fas fa-code text-info me-2"></i>
+                        <span>Persistent Coder</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if accepted_submissions == 0 and total_submissions == 0 %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-trophy fa-2x mb-2 opacity-25"></i>
+                        <p class="small">Start solving problems to earn achievements!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

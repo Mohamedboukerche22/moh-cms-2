@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Problem - {{ problem.code }} - IOI CMS{% endblock %}
+
+{% block head %}
+<!-- CKEditor for rich text editing -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Problem: {{ problem.code }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="problemForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.title.label(class="form-label") }}
+                            {{ form.title(class="form-control") }}
+                            {% if form.title.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.title.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.code.label(class="form-label") }}
+                            {{ form.code(class="form-control") }}
+                            {% if form.code.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.code.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.statement.label(class="form-label") }}
+                        {{ form.statement(class="form-control", id="statementEditor", rows="10") }}
+                        {% if form.statement.errors %}
+                        <div class="text-danger small">
+                            {% for error in form.statement.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.input_format.label(class="form-label") }}
+                            {{ form.input_format(class="form-control", rows="4") }}
+                            {% if form.input_format.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.input_format.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.output_format.label(class="form-label") }}
+                            {{ form.output_format(class="form-control", rows="4") }}
+                            {% if form.output_format.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.output_format.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.constraints.label(class="form-label") }}
+                        {{ form.constraints(class="form-control", rows="3") }}
+                        {% if form.constraints.errors %}
+                        <div class="text-danger small">
+                            {% for error in form.constraints.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.sample_input.label(class="form-label") }}
+                            {{ form.sample_input(class="form-control", rows="4") }}
+                            {% if form.sample_input.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.sample_input.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.sample_output.label(class="form-label") }}
+                            {{ form.sample_output(class="form-control", rows="4") }}
+                            {% if form.sample_output.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.sample_output.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            {{ form.time_limit.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.time_limit(class="form-control") }}
+                                <span class="input-group-text">ms</span>
+                            </div>
+                            {% if form.time_limit.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.time_limit.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.memory_limit.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.memory_limit(class="form-control") }}
+                                <span class="input-group-text">MB</span>
+                            </div>
+                            {% if form.memory_limit.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.memory_limit.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.difficulty.label(class="form-label") }}
+                            {{ form.difficulty(class="form-select") }}
+                            {% if form.difficulty.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.difficulty.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.points.label(class="form-label") }}
+                            {{ form.points(class="form-control") }}
+                            {% if form.points.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.points.errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-outline-info">
+                            View Problem
+                        </a>
+                        <a href="{{ url_for('admin_problems') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Problem Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Problem Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('manage_test_cases', problem_id=problem.id) }}" class="btn btn-info">
+                        <i class="fas fa-vial me-2"></i>Manage Test Cases
+                    </a>
+                    <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-2"></i>Preview Problem
+                    </a>
+                    <a href="{{ url_for('admin_submissions') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-paper-plane me-2"></i>View Submissions
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Problem Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-7">Created:</dt>
+                    <dd class="col-sm-5">{{ problem.created_at|naturaltime }}</dd>
+                    
+                    <dt class="col-sm-7">Test Cases:</dt>
+                    <dd class="col-sm-5">{{ problem.test_cases|length }}</dd>
+                    
+                    <dt class="col-sm-7">Submissions:</dt>
+                    <dd class="col-sm-5">{{ problem.submissions|length }}</dd>
+                    
+                    <dt class="col-sm-7">Status:</dt>
+                    <dd class="col-sm-5">
+                        {% if problem.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Validation -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>Problem Validation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="validation-item d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Problem Statement:</span>
+                    {% if problem.statement %}
+                    <i class="fas fa-check text-success"></i>
+                    {% else %}
+                    <i class="fas fa-times text-danger"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="validation-item d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Sample Input/Output:</span>
+                    {% if problem.sample_input and problem.sample_output %}
+                    <i class="fas fa-check text-success"></i>
+                    {% else %}
+                    <i class="fas fa-times text-danger"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="validation-item d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">Test Cases:</span>
+                    {% if problem.test_cases|length > 0 %}
+                    <i class="fas fa-check text-success"></i>
+                    {% else %}
+                    <i class="fas fa-times text-danger"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="validation-item d-flex justify-content-between align-items-center">
+                    <span class="small">Constraints:</span>
+                    {% if problem.constraints %}
+                    <i class="fas fa-check text-success"></i>
+                    {% else %}
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CKEditor for problem statement
+    ClassicEditor
+        .create(document.querySelector('#statementEditor'), {
+            toolbar: [
+                'heading', '|',
+                'bold', 'italic', 'link', '|',
+                'bulletedList', 'numberedList', '|',
+                'outdent', 'indent', '|',
+                'blockQuote', 'insertTable', '|',
+                'undo', 'redo'
+            ],
+            heading: {
+                options: [
+                    { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                    { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                    { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                    { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                ]
+            }
+        })
+        .catch(error => {
+            console.error('CKEditor initialization failed:', error);
+        });
+});
+</script>
+{% endblock %}

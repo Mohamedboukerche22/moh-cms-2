@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.code }} - {{ problem.title }} - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Problem Header -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <span class="badge bg-primary me-2">{{ problem.code }}</span>
+                    {{ problem.title }}
+                </h3>
+                {% if is_solved %}
+                <span class="badge bg-success fs-6">
+                    <i class="fas fa-check me-1"></i>Solved
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Problem Statement -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Problem Statement
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="problem-content">
+                    {{ problem.statement|safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Input/Output Format -->
+        {% if problem.input_format or problem.output_format %}
+        <div class="row mb-4">
+            {% if problem.input_format %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0">Input Format</h6></div>
+                    <div class="card-body"><pre class="mb-0">{{ problem.input_format }}</pre></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if problem.output_format %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0">Output Format</h6></div>
+                    <div class="card-body"><pre class="mb-0">{{ problem.output_format }}</pre></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Sample Input/Output -->
+        {% if problem.sample_input and problem.sample_output %}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0">Sample Input</h6></div>
+                    <div class="card-body"><pre class="mb-0">{{ problem.sample_input }}</pre></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0">Sample Output</h6></div>
+                    <div class="card-body"><pre class="mb-0">{{ problem.sample_output }}</pre></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Constraints -->
+        {% if problem.constraints %}
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0">Constraints</h6></div>
+            <div class="card-body"><pre class="mb-0">{{ problem.constraints }}</pre></div>
+        </div>
+        {% endif %}
+
+        <!-- Submit Button -->
+        {% if current_user.is_authenticated and current_user.can_submit() %}
+        <div class="d-grid">
+            <a href="{{ url_for('submit_solution', problem_id=problem.id) }}" class="btn btn-success btn-lg">
+                <i class="fas fa-code me-2"></i>Submit Solution
+            </a>
+        </div>
+        {% elif not current_user.is_authenticated %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <a href="{{ url_for('login') }}">Login</a> to submit solutions for this problem.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Problem Info -->
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Problem Information</h6></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Difficulty:</dt>
+                    <dd class="col-sm-6">
+                        {% if problem.difficulty == 'easy' %}
+                        <span class="badge bg-success">Easy</span>
+                        {% elif problem.difficulty == 'medium' %}
+                        <span class="badge bg-warning">Medium</span>
+                        {% else %}
+                        <span class="badge bg-danger">Hard</span>
+                        {% endif %}
+                    </dd>
+                    <dt class="col-sm-6">Points:</dt>
+                    <dd class="col-sm-6">{{ problem.points }}</dd>
+                    <dt class="col-sm-6">Time Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.time_limit }} ms</dd>
+                    <dt class="col-sm-6">Memory Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.memory_limit }} MB</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-navigation me-2"></i>Actions</h6></div>
+            <div class="card-body d-grid gap-2">
+                <a href="{{ url_for('problems') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Problems
+                </a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('submissions') }}" class="btn btn-outline-info">
+                    <i class="fas fa-history me-2"></i>My Submissions
+                </a>
+                {% endif %}
+                <a href="{{ url_for('scoreboard') }}" class="btn btn-outline-success">
+                    <i class="fas fa-trophy me-2"></i>Scoreboard
+                </a>
+                {% if current_user.is_judge() %}
+                <hr>
+                <a href="{{ url_for('edit_problem', problem_id=problem.id) }}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Edit Problem
+                </a>
+                <a href="{{ url_for('manage_test_cases', problem_id=problem.id) }}" class="btn btn-info">
+                    <i class="fas fa-vial me-2"></i>Test Cases
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Supported Languages -->
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="fas fa-code me-2"></i>Supported Languages</h6></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-2"><span class="badge bg-info">Python 3</span></div>
+                    <div class="col-6 mb-2"><span class="badge bg-primary">C++</span></div>
+                    <div class="col-6 mb-2"><span class="badge bg-secondary">C</span></div>
+                    <div class="col-6 mb-2"><span class="badge bg-warning">Java</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const problemContent = document.querySelector('.problem-content');
+    if (problemContent) {
+        problemContent.style.lineHeight = '1.6';
+        problemContent.style.fontSize = '1rem';
+        problemContent.style.padding = '10px';
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

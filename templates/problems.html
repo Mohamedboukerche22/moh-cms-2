@@ -1,0 +1,155 @@
+
+{% extends "base.html" %}
+
+{% block title %}Problems - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-puzzle-piece me-2"></i>Problems
+    </h2>
+    
+    {% if current_user.is_judge() and admin_view %}
+    <a href="{{ url_for('create_problem') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Create Problem
+    </a>
+    {% endif %}
+</div>
+
+{% if problems %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="10%">Code</th>
+                        <th width="40%">Title</th>
+                        <th width="15%">Difficulty</th>
+                        <th width="10%">Points</th>
+                        <th width="15%">Status</th>
+                        <th width="10%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for problem in problems %}
+                    <tr>
+                        <td>
+                            <strong class="text-primary">{{ problem.code }}</strong>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="text-decoration-none">
+                                {{ problem.title }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if problem.difficulty == 'easy' %}
+                            <span class="badge bg-success">Easy</span>
+                            {% elif problem.difficulty == 'medium' %}
+                            <span class="badge bg-warning">Medium</span>
+                            {% else %}
+                            <span class="badge bg-danger">Hard</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ problem.points }}</td>
+                        <td>
+                            {% if current_user.is_authenticated %}
+                                {% if problem.is_solved %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>Solved
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-minus me-1"></i>Unsolved
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" 
+                                   class="btn btn-outline-primary" title="View Problem">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                {% if current_user.is_authenticated and current_user.can_submit() %}
+                                <a href="{{ url_for('submit_solution', problem_id=problem.id) }}" 
+                                   class="btn btn-outline-success" title="Submit Solution">
+                                    <i class="fas fa-code"></i>
+                                </a>
+                                {% endif %}
+                                
+                                {% if current_user.is_judge() and admin_view %}
+                                <a href="{{ url_for('edit_problem', problem_id=problem.id) }}" 
+                                   class="btn btn-outline-warning" title="Edit Problem">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('manage_test_cases', problem_id=problem.id) }}" 
+                                   class="btn btn-outline-info" title="Manage Test Cases">
+                                    <i class="fas fa-vial"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Problem Statistics -->
+{% if not admin_view %}
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">Easy</h5>
+                <h3 class="text-success">
+                    {{ problems|selectattr('difficulty', 'equalto', 'easy')|list|length }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">Medium</h5>
+                <h3 class="text-warning">
+                    {{ problems|selectattr('difficulty', 'equalto', 'medium')|list|length }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-danger">Hard</h5>
+                <h3 class="text-danger">
+                    {{ problems|selectattr('difficulty', 'equalto', 'hard')|list|length }}
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-puzzle-piece fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No problems available</h4>
+        <p class="text-muted">Problems will appear here once they are created by administrators.</p>
+        
+        {% if current_user.is_judge() %}
+        <a href="{{ url_for('create_problem') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create First Problem
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

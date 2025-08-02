@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-cog me-2"></i>Admin Panel
+        </h2>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_users }}</h4>
+                        <p class="card-text">Total Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_problems }}</h4>
+                        <p class="card-text">Total Problems</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-puzzle-piece fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_submissions }}</h4>
+                        <p class="card-text">Total Submissions</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-paper-plane fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ pending_submissions }}</h4>
+                        <p class="card-text">Pending Judging</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-hourglass-half fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Management Sections -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-puzzle-piece me-2"></i>Problem Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Create, edit, and manage contest problems and test cases.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('create_problem') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create New Problem
+                    </a>
+                    <a href="{{ url_for('admin_problems') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>Manage Problems
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-paper-plane me-2"></i>Submission Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Monitor and manage all user submissions and judging results.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_submissions') }}" class="btn btn-info">
+                        <i class="fas fa-eye me-2"></i>View All Submissions
+                    </a>
+                    <a href="{{ url_for('scoreboard') }}" class="btn btn-outline-info">
+                        <i class="fas fa-trophy me-2"></i>View Scoreboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.is_admin() %}
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>User Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Manage user accounts, roles, and permissions.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-warning">
+                        <i class="fas fa-users-cog me-2"></i>Manage Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bullhorn me-2"></i>Communication
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Post announcements and communicate with participants.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" onclick="alert('Announcement feature coming soon!')">
+                        <i class="fas fa-plus me-2"></i>New Announcement
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-activity me-2"></i>System Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Judge System</h6>
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Online
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Database</h6>
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Connected
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>File System</h6>
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Available
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

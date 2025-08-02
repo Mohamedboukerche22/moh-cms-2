@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Solution - {{ problem.code }} - IOI CMS{% endblock %}
+
+{% block head %}
+<!-- CodeMirror for syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Submit Form -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-code me-2"></i>Submit Solution
+                    <span class="badge bg-primary ms-2">{{ problem.code }}</span>
+                </h4>
+                <small class="text-muted">{{ problem.title }}</small>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="submitForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.language.label(class="form-label") }}
+                        {{ form.language(class="form-select", id="languageSelect") }}
+                        {% if form.language.errors %}
+                        <div class="text-danger small">
+                            {% for error in form.language.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.code.label(class="form-label") }}
+                        {{ form.code(class="form-control", id="codeEditor", style="display: none;") }}
+                        <div id="editorContainer"></div>
+                        {% if form.code.errors %}
+                        <div class="text-danger small">
+                            {% for error in form.code.errors %}
+                            <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Problem Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Problem Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ problem.code }} - {{ problem.title }}</h6>
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-6">Difficulty:</dt>
+                    <dd class="col-sm-6">
+                        {% if problem.difficulty == 'easy' %}
+                        <span class="badge bg-success">Easy</span>
+                        {% elif problem.difficulty == 'medium' %}
+                        <span class="badge bg-warning">Medium</span>
+                        {% else %}
+                        <span class="badge bg-danger">Hard</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-6">Points:</dt>
+                    <dd class="col-sm-6">{{ problem.points }}</dd>
+                    
+                    <dt class="col-sm-6">Time Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.time_limit }} ms</dd>
+                    
+                    <dt class="col-sm-6">Memory Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.memory_limit }} MB</dd>
+                </dl>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>View Problem
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Input/Output -->
+        {% if problem.sample_input and problem.sample_output %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-play me-2"></i>Sample Case
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Input:</strong>
+                    <pre class="bg-light p-2 mt-1 small">{{ problem.sample_input }}</pre>
+                </div>
+                <div>
+                    <strong>Output:</strong>
+                    <pre class="bg-light p-2 mt-1 small">{{ problem.sample_output }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Language Templates -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-code me-2"></i>Code Templates
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="btn-group-vertical d-grid gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('python3')">
+                        Python 3 Template
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('cpp')">
+                        C++ Template
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('c')">
+                        C Template
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('java')">
+                        Java Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let editor;
+
+// Code templates
+const templates = {
+    'python3': `# Read input
+n = int(input())
+
+# Process and output
+print(n)`,
+    'cpp': `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    cin >> n;
+    
+    cout << n << endl;
+    
+    return 0;
+}`,
+    'c': `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    printf("%d\\n", n);
+    
+    return 0;
+}`,
+    'java': `import java.util.*;
+import java.io.*;
+
+public class Solution {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        int n = sc.nextInt();
+        
+        System.out.println(n);
+        
+        sc.close();
+    }
+}`
+};
+
+// Language mode mapping for CodeMirror
+const languageModes = {
+    'python3': 'python',
+    'cpp': 'text/x-c++src',
+    'c': 'text/x-csrc',
+    'java': 'text/x-java'
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CodeMirror editor
+    const textarea = document.getElementById('codeEditor');
+    const languageSelect = document.getElementById('languageSelect');
+    
+    editor = CodeMirror(document.getElementById('editorContainer'), {
+        value: textarea.value || templates[languageSelect.value] || '',
+        mode: languageModes[languageSelect.value] || 'python',
+        theme: 'monokai',
+        lineNumbers: true,
+        lineWrapping: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        styleActiveLine: true,
+        scrollbarStyle: 'simple'
+    });
+    
+    // Update language mode when selection changes
+    languageSelect.addEventListener('change', function() {
+        const selectedLanguage = this.value;
+        editor.setOption('mode', languageModes[selectedLanguage] || 'python');
+        
+        // Load template if editor is empty
+        if (editor.getValue().trim() === '') {
+            editor.setValue(templates[selectedLanguage] || '');
+        }
+    });
+    
+    // Sync CodeMirror content with textarea on form submission
+    document.getElementById('submitForm').addEventListener('submit', function() {
+        textarea.value = editor.getValue();
+    });
+    
+    // Load initial template
+    if (editor.getValue().trim() === '') {
+        editor.setValue(templates[languageSelect.value] || '');
+    }
+    
+    // Set editor height
+    editor.setSize(null, '400px');
+});
+
+function loadTemplate(language) {
+    if (templates[language]) {
+        editor.setValue(templates[language]);
+        document.getElementById('languageSelect').value = language;
+        editor.setOption('mode', languageModes[language] || 'python');
+    }
+}
+</script>
+{% endblock %}

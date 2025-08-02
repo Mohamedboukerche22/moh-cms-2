@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Test Cases - {{ problem.code }} - IOI CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>
+                <i class="fas fa-vial me-2"></i>Test Cases
+                <span class="badge bg-primary">{{ problem.code }}</span>
+            </h3>
+            
+            <a href="{{ url_for('add_test_case', problem_id=problem.id) }}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add Test Case
+            </a>
+        </div>
+
+        {% if test_cases %}
+        <div class="card">
+            <div class="card-body">
+                {% for test_case in test_cases %}
+                <div class="test-case-item border rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="mb-0">
+                            Test Case #{{ loop.index }}
+                            {% if test_case.is_sample %}
+                            <span class="badge bg-info ms-2">Sample</span>
+                            {% endif %}
+                        </h6>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="toggleTestCase({{ loop.index }})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteTestCase({{ test_case.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-2">
+                            <strong>Points:</strong> {{ test_case.points }}
+                        </div>
+                        <div class="col-md-5">
+                            <strong>Input Size:</strong> {{ test_case.input_data|length }} chars
+                        </div>
+                        <div class="col-md-5">
+                            <strong>Output Size:</strong> {{ test_case.output_data|length }} chars
+                        </div>
+                    </div>
+                    
+                    <div class="test-case-details" id="testcase-{{ loop.index }}" style="display: none;">
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Input Data:</h6>
+                                <pre class="bg-light p-2 small">{{ test_case.input_data }}</pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Expected Output:</h6>
+                                <pre class="bg-light p-2 small">{{ test_case.output_data }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Test Case Summary -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ test_cases|length }}</h5>
+                        <p class="card-text">Total Test Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">{{ test_cases|selectattr('is_sample')|list|length }}</h5>
+                        <p class="card-text">Sample Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ test_cases|map(attribute='points')|sum }}</h5>
+                        <p class="card-text">Total Points</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">{{ test_cases|rejectattr('is_sample')|list|length }}</h5>
+                        <p class="card-text">Hidden Cases</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-vial fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No test cases yet</h4>
+                <p class="text-muted">Add test cases to enable automatic judging for this problem.</p>
+                <a href="{{ url_for('add_test_case', problem_id=problem.id) }}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Add First Test Case
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Problem Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Problem Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ problem.title }}</h6>
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-6">Code:</dt>
+                    <dd class="col-sm-6">{{ problem.code }}</dd>
+                    
+                    <dt class="col-sm-6">Points:</dt>
+                    <dd class="col-sm-6">{{ problem.points }}</dd>
+                    
+                    <dt class="col-sm-6">Time Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.time_limit }}ms</dd>
+                    
+                    <dt class="col-sm-6">Memory Limit:</dt>
+                    <dd class="col-sm-6">{{ problem.memory_limit }}MB</dd>
+                    
+                    <dt class="col-sm-6">Difficulty:</dt>
+                    <dd class="col-sm-6">
+                        {% if problem.difficulty == 'easy' %}
+                        <span class="badge bg-success">Easy</span>
+                        {% elif problem.difficulty == 'medium' %}
+                        <span class="badge bg-warning">Medium</span>
+                        {% else %}
+                        <span class="badge bg-danger">Hard</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('add_test_case', problem_id=problem.id) }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Add Test Case
+                    </a>
+                    <a href="{{ url_for('edit_problem', problem_id=problem.id) }}" class="btn btn-outline-warning">
+                        <i class="fas fa-edit me-2"></i>Edit Problem
+                    </a>
+                    <a href="{{ url_for('problem_detail', problem_id=problem.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-2"></i>View Problem
+                    </a>
+                    <a href="{{ url_for('admin_problems') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Problems
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Case Guidelines -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Test Case Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Include at least one sample test case</li>
+                    <li>Cover edge cases (empty input, max values)</li>
+                    <li>Test boundary conditions</li>
+                    <li>Include both positive and negative cases</li>
+                    <li>Ensure output format matches exactly</li>
+                    <li>Verify test case correctness</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleTestCase(index) {
+    const details = document.getElementById('testcase-' + index);
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+    } else {
+        details.style.display = 'none';
+    }
+}
+
+function deleteTestCase(testCaseId) {
+    if (confirm('Are you sure you want to delete this test case? This action cannot be undone.')) {
+        // In a real implementation, this would send a DELETE request
+        alert('Test case deletion will be implemented in the next version.');
+    }
+}
+</script>
+{% endblock %}
